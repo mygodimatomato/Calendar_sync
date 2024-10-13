@@ -1,4 +1,4 @@
-# Project Name: Calendar_sync
+# Calendar_sync
 
 ## Description
 Calendar_Sync is a Python-based Google Cloud solution for managing Google Calendar events across multiple calendars. This project synchronizes and modifies calendar events across various Google Calendars, providing automation for copying, updating, and deleting calendar entries to ensure consistency. The project also provides webhook notifications to handle changes efficiently.
