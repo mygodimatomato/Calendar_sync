@@ -1,0 +1,8 @@
+# Ignore all of the json file
+*.json
+
+# Ignore the dir called "google-cloud-sdk" and all of its content
+google-cloud-sdk/
+
+#Ignore the dir called "Calendar" and all of its content
+Calendar/
