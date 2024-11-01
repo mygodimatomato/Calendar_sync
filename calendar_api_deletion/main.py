@@ -53,8 +53,8 @@ def delete_if_original_missing(service, source_calendar_id, target_calendar_id):
             response = service.events().get(calendarId=source_calendar_id, eventId=original_event_id).execute()
             # print(f"Original event found: {response}")  # Print the response to debug
 
-            # Check if the event status is "cancelled"
-            if response.get('status') == 'cancelled':
+            # Check if the event status is "cancelled" or if the event summary contains "(cancel)" or "(Cancel)"
+            if response.get('status') == 'cancelled' or re.search(r'\(cancel\)', response.get('summary'), re.IGNORECASE):
                 print(f"Original event is cancelled, deleting copied event: {target_event['summary']}")
                 service.events().delete(calendarId=target_calendar_id, eventId=target_event['id']).execute()
         except Exception as e:

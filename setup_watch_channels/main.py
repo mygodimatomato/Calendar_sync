@@ -1,5 +1,6 @@
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+from google.cloud import storage
 import uuid
 import os
 import json
@@ -17,6 +18,11 @@ credentials = service_account.Credentials.from_service_account_file(
 
 # Build the Google Calendar service
 calendar_service = build('calendar', 'v3', credentials=credentials)
+
+# Cloud Storage setup
+storage_client = storage.Client.from_service_account_json(SERVICE_ACCOUNT_FILE)
+BUCKET_NAME = 'calendar-webhook'
+CHANNEL_INFO_FILE = 'watch_channels.json'
 
 # Calendar IDs (replace these with your actual calendar IDs)
 source_calendar_ids = [
@@ -36,17 +42,29 @@ WEBHOOK_URL_2 = "https://asia-east1-calendartracking-438215.cloudfunctions.net/c
 # File to store channel information to allow stopping them later
 CHANNEL_INFO_FILE = './watch_channels.json'
 
-# Function to load channel information from file
+# Function to load channel information from GCS
 def load_channel_info():
-    if os.path.exists(CHANNEL_INFO_FILE):
-        with open(CHANNEL_INFO_FILE, 'r') as file:
-            return json.load(file)
-    return {}
+    try:
+        bucket = storage_client.get_bucket(BUCKET_NAME)
+        blob = bucket.blob(CHANNEL_INFO_FILE)
+        if blob.exists():
+            data = blob.download_as_string().decode('utf-8')
+            return json.loads(data)
+        else:
+            return {}
+    except Exception as e:
+        print(f'Error loading channel info from GCS: {e}')
+        return {}
 
-# Function to save channel information to file
+# Function to save channel information to GCS
 def save_channel_info(channel_info):
-    with open(CHANNEL_INFO_FILE, 'w') as file:
-        json.dump(channel_info, file)
+    try:
+        bucket = storage_client.get_bucket(BUCKET_NAME)
+        blob = bucket.blob(CHANNEL_INFO_FILE)
+        blob.upload_from_string(json.dumps(channel_info), content_type='application/json')
+        print('Channel info successfully saved to GCS.')
+    except Exception as e:
+        print(f'Error saving channel info to GCS: {e}')
 
 # Function to stop an existing watch channel
 def stop_channel(channel_id, resource_id):
